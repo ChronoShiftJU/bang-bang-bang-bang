@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post("/register", async (req, res) => {
     try {
-        console.log("Received Data:", req.body); // ✅ Debugging Log
+        console.log("Received Data:", req.body); // Debugging Log
 
         const { name, email, password } = req.body;
 
