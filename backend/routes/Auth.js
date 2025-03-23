@@ -41,20 +41,29 @@ router.post("/login", async (req, res) => {
 
 router.get("/me", async (req, res) => {
     try {
-        const token = req.header("Authorization");
-        if (!token) return res.status(401).json({ message: "No token, authorization denied" });
+        const authHeader = req.header("Authorization");
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({ message: "No token, authorization denied" });
+        }
 
-        const decoded = jwt.verify(token, "SECRET_KEY");
-        const user = await User.findById(decoded.id).select("-password"); // Exclude password
+        const token = authHeader.split(" ")[1]; // Extract token
+        const decoded = jwt.verify(token, "SECRET_KEY"); // Use correct secret key
 
+        const user = await User.findById(decoded.id).select("-password");
         if (!user) return res.status(404).json({ message: "User not found" });
 
         res.json(user);
     } catch (error) {
         console.error("Error fetching user:", error);
+        if (error.name === "JsonWebTokenError") {
+            return res.status(401).json({ message: "Invalid token" });
+        } else if (error.name === "TokenExpiredError") {
+            return res.status(401).json({ message: "Token expired, please log in again" });
+        }
         res.status(500).json({ message: "Server error" });
     }
 });
+
 
 
 export default router;
