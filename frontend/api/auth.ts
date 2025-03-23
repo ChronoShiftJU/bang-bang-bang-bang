@@ -15,59 +15,62 @@ interface AuthResponse {
     message?: string;
 }
 
-export const login = async (email: string, password: string): Promise<AuthResponse> => {
+export const login = async (email: string, password: string) => {
     try {
         const response = await fetch(`${API_URL}/auth/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
         });
 
         const data = await response.json();
-        return data;
+        if (!response.ok) {
+            throw new Error(data.message || "Login failed 1");
+        }
+        
+        return data; // Expects { token: "..." }
     } catch (error) {
-        console.error('API login error:', error);
-        throw error;
+        console.error("Login error:", error);
+        return { error: error.message };
     }
 };
 
-export const register = async (name: string, email: string, password: string): Promise<AuthResponse> => {
+export const register = async (name: string, email: string, password: string) => {
     try {
         const response = await fetch(`${API_URL}/auth/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, email, password }),
         });
 
         const data = await response.json();
-        return data;
+        if (!response.ok) {
+            throw new Error(data.error || "Registration failed");
+        }
+        
+        return { success: true };
     } catch (error) {
-        console.error('API register error:', error);
-        throw error;
+        console.error("Registration error:", error);
+        return { success: false, message: error.message };
     }
 };
 
-export const getUser = async (token: string): Promise<User> => {
+export const getUser = async (token: string) => {
     try {
         const response = await fetch(`${API_URL}/auth/me`, {
-            method: 'GET',
+            method: "GET",
             headers: {
-                'Authorization': `Bearer ${token}`,
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
             },
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to get user data');
-        }
-
         const data = await response.json();
-        return data.user;
+        if (!response.ok) throw new Error(data.message || "Failed to fetch user");
+
+        return data;
     } catch (error) {
-        console.error('Get user error:', error);
-        throw error;
+        console.error("Get user error:", error);
+        return null;
     }
 };

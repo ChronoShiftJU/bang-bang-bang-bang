@@ -29,49 +29,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loadUserFromStorage();
     }, []);
 
-    const loadUserFromStorage = async () => {
-        try {
-            const token = await SecureStore.getItemAsync('userToken');
-            if (token) {
-                const userData = await getUser(token);
-                setUser(userData);
-            }
-        } catch (error) {
-            console.error('Error loading user from storage:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    
 
     const login = async (email: string, password: string) => {
         try {
             const response = await apiLogin(email, password);
-            if (response.success && response.token && response.user) {
-                await SecureStore.setItemAsync('userToken', response.token);
-                setUser(response.user);
+            if (response.token) {
+                await SecureStore.setItemAsync("userToken", response.token);
+    
+                const userData = await getUser(response.token);
+                if (userData) setUser(userData);
+    
                 return { success: true };
             }
-            return { success: false, message: response.message || 'Login failed' };
+            return { success: false, message: response.error || "Login failed 2" };
         } catch (error) {
-            console.error('Login error:', error);
-            return { success: false, message: 'An error occurred during login' };
+            console.error("Login error:", error);
+            return { success: false, message: "An error occurred during login" };
         }
     };
-
+    
+    useEffect(() => {
+        loadUserFromStorage();
+    }, []);
+    
+    const loadUserFromStorage = async () => {
+        try {
+            const token = await SecureStore.getItemAsync("userToken");
+            if (token) {
+                const userData = await getUser(token);
+                if (userData) setUser(userData);
+            }
+        } catch (error) {
+            console.error("Error loading user from storage:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    
     const register = async (name: string, email: string, password: string) => {
         try {
             const response = await apiRegister(name, email, password);
-            if (response.success && response.token && response.user) {
-                await SecureStore.setItemAsync('userToken', response.token);
-                setUser(response.user);
+            if (response.success) {
                 return { success: true };
             }
-            return { success: false, message: response.message || 'Registration failed' };
+            return { success: false, message: response.message || "Registration failed" };
         } catch (error) {
-            console.error('Registration error:', error);
-            return { success: false, message: 'An error occurred during registration' };
+            console.error("Registration error:", error);
+            return { success: false, message: "An error occurred during registration" };
         }
     };
+    
 
     const logout = async () => {
         await SecureStore.deleteItemAsync('userToken');

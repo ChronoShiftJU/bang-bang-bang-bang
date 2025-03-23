@@ -39,4 +39,22 @@ router.post("/login", async (req, res) => {
     res.json({ token });
 });
 
+router.get("/me", async (req, res) => {
+    try {
+        const token = req.header("Authorization");
+        if (!token) return res.status(401).json({ message: "No token, authorization denied" });
+
+        const decoded = jwt.verify(token, "SECRET_KEY");
+        const user = await User.findById(decoded.id).select("-password"); // Exclude password
+
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        res.json(user);
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+
 export default router;
