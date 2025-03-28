@@ -6,6 +6,9 @@ import SignOutButton from '@/app/components/SignOutButton'
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 
+const URL = '192.168.61.49';
+// const URL = '192.168.29.250';
+
 export default function Page() {
     const { user } = useUser();
 
@@ -21,7 +24,7 @@ export default function Page() {
                 // console.log(token);
 
                 // https://jsonplaceholder.typicode.com/posts/1
-                const response = await fetch('http://192.168.29.250:5000/protected/', {
+                const response = await fetch(`http://${URL}:5000/api/auth/protected/`, {
                     headers: { Authorization: `Bearer ${token}` }, // Include the session token as a Bearer token in the Authorization header
                 });
                 const json = await response.json();
