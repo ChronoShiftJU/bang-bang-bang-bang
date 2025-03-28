@@ -1,20 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import {
     Text,
-    ActivityIndicator,
     Avatar,
     Card,
     Divider,
     Button,
     Surface
 } from 'react-native-paper';
-import { SignedIn, SignedOut, useAuth, useUser } from '@clerk/clerk-expo';
+import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import SignOutButton from '@/app/components/SignOutButton';
-
-// const URL = '192.168.61.49';
-const URL = '192.168.29.250';
 
 const formatDate = (dateString: any) => {
     const date = new Date(dateString);
@@ -48,45 +44,10 @@ const formatDate = (dateString: any) => {
         hour12: true,
     }).replace(',', '').toUpperCase();
 };
-  
+
 export default function Page() {
     const { user } = useUser();
-    const [data, setData] = useState<string | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-    const { getToken, isSignedIn } = useAuth();
     const router = useRouter();
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const token = await getToken();
-                const response = await fetch(`http://${URL}:5000/api/auth/protected/`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                const json = await response.json();
-
-                if (json.message) {
-                    setData(json.message);
-                } else {
-                    setData('Response: ' + JSON.stringify(json, null, 2));
-                    console.log(JSON.stringify(json, null, 2));
-                }
-            } catch (err: unknown) {
-                if (err instanceof Error) {
-                    setError(err.message);
-                } else {
-                    setError('An unknown error occurred');
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, [isSignedIn]);
-
-    if (loading) return <ActivityIndicator size="large" />;
-    if (error) return <Text>Error: {error}</Text>;
 
     return (
         <Surface style={styles.container}>
@@ -118,7 +79,16 @@ export default function Page() {
 
                 <Divider style={styles.divider} />
 
+                <Button
+                    mode="contained"
+                    onPress={() => router.push('/(home)/chat')}
+                    style={styles.button}
+                >
+                    Go Chat
+                </Button>
+
                 <View style={styles.actionContainer}>
+                    
                     <SignOutButton />
                 </View>
             </SignedIn>
@@ -141,14 +111,6 @@ export default function Page() {
                     </Button>
                 </View>
             </SignedOut>
-
-            {data && (
-                <Card style={styles.dataCard}>
-                    <Card.Content>
-                        <Text variant="bodyMedium">{data}</Text>
-                    </Card.Content>
-                </Card>
-            )}
         </Surface>
     );
 }
@@ -184,6 +146,9 @@ const styles = StyleSheet.create({
     },
     authButton: {
         flex: 1,
+        marginHorizontal: 8,
+    },
+    button: {
         marginHorizontal: 8,
     },
     dataCard: {
